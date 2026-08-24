@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { usePeriodTracker } from '../hooks/usePeriodTracker';
-import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { CalendarCard } from '../components/dashboard/CalendarCard';
 import { CyclePhaseCard } from '../components/dashboard/CyclePhaseCard';
 import { WellnessMetrics } from '../components/dashboard/WellnessMetrics';
@@ -12,7 +11,8 @@ import { ConnectedDevices } from '../components/dashboard/ConnectedDevices';
 import { QuickLog } from '../components/dashboard/QuickLog';
 import { EditLogModal } from '../components/dashboard/EditLogModal';
 import { SetupFlowModal } from '../components/setup/SetupFlowModal';
-import type { QuickLogType, NavigationTab } from '../types/dashboard';
+import { LogSymptomsPage } from './LogSymptomsPage';
+import type { QuickLogType } from '../types/dashboard';
 
 export const MainDashboard: React.FC = () => {
   const {
@@ -20,8 +20,6 @@ export const MainDashboard: React.FC = () => {
     days,
     selectedDateStr,
     selectedDay,
-    activeNavTab,
-    setActiveNavTab,
     devices,
     cycleSummary,
     setupData,
@@ -38,18 +36,12 @@ export const MainDashboard: React.FC = () => {
   // Modals state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+  const [isLoggingSymptoms, setIsLoggingSymptoms] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  const handleSelectNavTab = (tab: NavigationTab) => {
-    setActiveNavTab(tab);
-    if (tab !== 'Dashboard') {
-      showToast(`Switched view to ${tab} portal`);
-    }
   };
 
   const handleQuickLogAction = (type: QuickLogType) => {
@@ -68,15 +60,14 @@ export const MainDashboard: React.FC = () => {
       handleQuickLog('sleep', 7.5);
       showToast('Logged 7.5 hrs sleep 🌙');
     } else if (type === 'symptoms') {
-      setIsEditModalOpen(true);
-      showToast('Opening Biomarkers & Symptoms logger ✨');
+      setIsLoggingSymptoms(true);
     } else {
       setIsEditModalOpen(true);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9FD] text-[#1F2937] font-sans antialiased pb-12">
+    <div className="min-h-screen bg-[#FAF9FD] text-[#1F2937] font-sans antialiased">
       {/* Toast notification banner */}
       {toastMessage && (
         <div
@@ -89,91 +80,88 @@ export const MainDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Top Navigation */}
-      <DashboardHeader
-        activeTab={activeNavTab}
-        onSelectTab={handleSelectNavTab}
-        userName={profile.name}
-        userRole={profile.roleTitle}
-        userAvatar={profile.avatarUrl}
-        onOpenSetup={() => setIsSetupModalOpen(true)}
-      />
+      {/* Log Symptoms page — full page view */}
+      {isLoggingSymptoms ? (
+        <LogSymptomsPage
+          dayLog={selectedDay}
+          onBack={() => setIsLoggingSymptoms(false)}
+          onSave={(updated) => {
+            handleUpdateDayLog(updated);
+            setIsLoggingSymptoms(false);
+            showToast('Symptoms logged for the selected date');
+          }}
+        />
+      ) : (
+        /* Main Ovulation Dashboard Container */
+        <main className="w-full max-w-[1440px] mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-7 lg:py-8 min-w-0">
+          <div className="flex flex-col xl:flex-row items-start gap-6 xl:gap-8 min-w-0">
+            {/* LEFT MAIN CONTENT AREA (Full width on <1280px, ~1039px on desktop) */}
+            <div className="w-full xl:flex-1 flex flex-col gap-6 min-w-0">
+              {/* 1. Daily Log & Calendar Strip */}
+              <CalendarCard
+                days={days}
+                selectedDateStr={selectedDateStr}
+                onSelectDate={handleSelectDate}
+                onPrevDay={handlePrevDay}
+                onNextDay={handleNextDay}
+                onSelectToday={handleSelectToday}
+              />
 
-      {/* Non-dashboard placeholder info bar if a secondary tab is clicked */}
-      {activeNavTab !== 'Dashboard' && (
-        <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 my-2">
-          <div className="bg-purple-50 border border-purple-200/80 rounded-2xl p-3.5 flex items-center justify-between text-xs text-purple-900">
-            <span>
-              Viewing <strong>{activeNavTab}</strong> section. Cycle tracking and dashboard analytics remain active below.
-            </span>
-            <button
-              onClick={() => setActiveNavTab('Dashboard')}
-              className="font-bold underline text-purple-700 hover:text-purple-900"
-            >
-              Return to Dashboard
-            </button>
+              {/* 2. Large Primary Cycle Phase Card */}
+              <CyclePhaseCard
+                dayLog={selectedDay}
+                onEditLog={() => setIsEditModalOpen(true)}
+                onSelectToday={handleSelectToday}
+              />
+
+              {/* 3. Wellness Metrics Section */}
+              <WellnessMetrics
+                dayLog={selectedDay}
+                onEditLog={() => setIsEditModalOpen(true)}
+                onQuickEditMetric={() => setIsEditModalOpen(true)}
+              />
+            </div>
+
+            {/* RIGHT SIDEBAR (2-column balanced grid on tablet/laptop, 341px vertical column on desktop) */}
+            <aside className="w-full xl:w-[341px] 2xl:w-[360px] flex-shrink-0 bg-white rounded-[24px] lg:rounded-[32px] border border-[#F3F4F6] p-4 sm:p-6 shadow-[0px_2px_12px_rgba(0,0,0,0.03)] min-w-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-6">
+                {/* Column 1 on tablet */}
+                <div className="space-y-6 min-w-0">
+                  {/* Profile Card with Settings flow trigger */}
+                  <ProfileCard
+                    profile={profile}
+                    onOpenSetup={() => setIsSetupModalOpen(true)}
+                  />
+
+                  {/* Cycle Summary */}
+                  <CycleSummary summary={cycleSummary} />
+
+                  {/* Today's Insights */}
+                  <TodayInsights phase={selectedDay.phase} />
+                </div>
+
+                {/* Column 2 on tablet */}
+                <div className="space-y-6 min-w-0">
+                  {/* Personal Notes */}
+                  <PersonalNotes
+                    initialNote={selectedDay.personalNotes}
+                    onSaveNote={(note) => {
+                      handleSaveNote(note);
+                      showToast('Personal note updated for selected date');
+                    }}
+                  />
+
+                  {/* Connected Devices */}
+                  <ConnectedDevices devices={devices} />
+
+                  {/* Quick Log Grid */}
+                  <QuickLog onSelectAction={handleQuickLogAction} />
+                </div>
+              </div>
+            </aside>
           </div>
-        </div>
+        </main>
       )}
-
-      {/* Main Container matching Figma layout (Frame 2147227178) */}
-      <main className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-2">
-        <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-8">
-          {/* LEFT MAIN CONTENT AREA (~1039px on desktop) */}
-          <div className="w-full lg:flex-1 flex flex-col gap-6 max-w-full">
-            {/* 1. Daily Log & Calendar Strip */}
-            <CalendarCard
-              days={days}
-              selectedDateStr={selectedDateStr}
-              onSelectDate={handleSelectDate}
-              onPrevDay={handlePrevDay}
-              onNextDay={handleNextDay}
-              onSelectToday={handleSelectToday}
-            />
-
-            {/* 2. Large Primary Cycle Phase Card */}
-            <CyclePhaseCard
-              dayLog={selectedDay}
-              onEditLog={() => setIsEditModalOpen(true)}
-              onSelectToday={handleSelectToday}
-            />
-
-            {/* 3. Wellness Metrics Section */}
-            <WellnessMetrics
-              dayLog={selectedDay}
-              onEditLog={() => setIsEditModalOpen(true)}
-              onQuickEditMetric={() => setIsEditModalOpen(true)}
-            />
-          </div>
-
-          {/* RIGHT SIDEBAR (~341px on desktop) matching Figma Sidebar (234:1253) */}
-          <aside className="w-full lg:w-[341px] flex-shrink-0 bg-white rounded-[24px] lg:rounded-[32px] border border-[#F3F4F6] p-5 sm:p-6 shadow-[0px_2px_12px_rgba(0,0,0,0.03)] space-y-6">
-            {/* Profile Card */}
-            <ProfileCard profile={profile} />
-
-            {/* Cycle Summary */}
-            <CycleSummary summary={cycleSummary} />
-
-            {/* Today's Insights */}
-            <TodayInsights phase={selectedDay.phase} />
-
-            {/* Personal Notes */}
-            <PersonalNotes
-              initialNote={selectedDay.personalNotes}
-              onSaveNote={(note) => {
-                handleSaveNote(note);
-                showToast('Personal note updated for selected date');
-              }}
-            />
-
-            {/* Connected Devices */}
-            <ConnectedDevices devices={devices} />
-
-            {/* Quick Log Grid */}
-            <QuickLog onSelectAction={handleQuickLogAction} />
-          </aside>
-        </div>
-      </main>
 
       {/* Edit Log Modal */}
       <EditLogModal

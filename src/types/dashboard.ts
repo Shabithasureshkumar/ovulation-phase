@@ -1,11 +1,3 @@
-export type NavigationTab = 
-  | 'Dashboard'
-  | 'Appointment'
-  | 'Patient'
-  | 'Reports'
-  | 'Chats'
-  | 'Billing';
-
 export interface LegendItem {
   label: string;
   color: string;

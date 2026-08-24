@@ -25,7 +25,7 @@ export const PersonalNotes: React.FC<PersonalNotesProps> = ({
   };
 
   return (
-    <div className="w-full pt-4">
+    <div className="w-full pt-4 min-w-0">
       {/* Header */}
       <h3 className="text-[15.6px] font-bold text-[#1F2937] leading-[23.4px]">
         Personal Notes
@@ -35,17 +35,18 @@ export const PersonalNotes: React.FC<PersonalNotesProps> = ({
       </p>
 
       {/* Text Area Card matching Figma 234:1379 */}
-      <div className="relative">
+      <div className="relative min-w-0">
         <textarea
           value={note}
+          aria-label="Daily personal notes"
           onChange={(e) => {
             if (e.target.value.length <= maxLength) {
               setNote(e.target.value);
             }
           }}
           rows={3}
-          placeholder="Example: Today I felt nauseous after eating lunch."
-          className="w-full bg-[#F9FAFB] rounded-[14.4px] p-3 text-[13.2px] text-gray-800 placeholder-[#9CA3AF] border border-[#E5E7EB] focus:outline-none focus:ring-2 focus:ring-[#EA33A1]/30 focus:border-[#EA33A1] transition resize-none leading-[19.8px]"
+          placeholder="Example: Today I felt energized and noticed egg-white cervical fluid."
+          className="w-full bg-[#F9FAFB] rounded-[14.4px] p-3 text-[13.2px] text-gray-800 placeholder-[#9CA3AF] border border-[#E5E7EB] focus:outline-none focus:ring-2 focus:ring-[#EA33A1]/30 focus:border-[#EA33A1] transition resize-none leading-[19.8px] min-w-0"
         />
       </div>
 
@@ -62,14 +63,16 @@ export const PersonalNotes: React.FC<PersonalNotesProps> = ({
             <span>Private & encrypted</span>
           </span>
         )}
-        <span>
+        <span className="text-[11.5px]">
           {note.length} / {maxLength}
         </span>
       </div>
 
       {/* Save Note Button matching Figma 234:1383 */}
       <button
+        type="button"
         onClick={handleSave}
+        aria-label="Save Personal Note"
         className="w-full h-[40.8px] rounded-[14.4px] bg-[#EA33A1] hover:bg-[#D7068E] text-white font-semibold text-[14.4px] flex items-center justify-center transition shadow-[0_4px_12px_rgba(234,51,161,0.25)] active:scale-[0.98]"
       >
         {isSaved ? 'Saved' : 'Save Note'}

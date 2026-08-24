@@ -294,7 +294,6 @@ export function usePeriodTracker() {
   const [profile, setProfile] = useState<UserProfile>(initialProfile);
   const [days, setDays] = useState<DayLogEntry[]>(initialDays);
   const [selectedDateStr, setSelectedDateStr] = useState<string>('2026-06-21');
-  const [activeNavTab, setActiveNavTab] = useState<string>('Dashboard');
   const [devices] = useState<ConnectedDevice[]>(initialDevices);
   
   // Setup flow state
@@ -405,8 +404,6 @@ export function usePeriodTracker() {
     selectedDateStr,
     selectedDay,
     selectedDayIndex,
-    activeNavTab,
-    setActiveNavTab,
     devices,
     cycleSummary,
     setupData,

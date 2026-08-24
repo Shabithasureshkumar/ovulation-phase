@@ -1,3 +1,5 @@
+export type SymptomIntensity = 'Mild' | 'Moderate' | 'Severe';
+
 export type CyclePhase = 'Menstruation' | 'Fertile Window' | 'Ovulation' | 'Luteal Phase';
 
 export interface UserProfile {
@@ -31,6 +33,8 @@ export interface DayLogEntry {
   cervicalMucusDesc: string; // "Egg-white cervical mucus is commonly seen around ovulation."
   flowLevel?: 'None' | 'Spotting' | 'Light' | 'Medium' | 'Heavy';
   symptoms?: string[];
+  /** Per-symptom intensity, keyed by the symptom label in `symptoms`. */
+  symptomIntensities?: Partial<Record<string, SymptomIntensity>>;
   
   // Fertility
   fertilityWindow: string; // "High Fertility Window"

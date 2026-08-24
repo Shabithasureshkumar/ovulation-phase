@@ -1,6 +1,6 @@
 import React from 'react';
 import { Moon, Smile, Waves, Footprints, Scale, Heart, PenLine } from 'lucide-react';
-import { DayLogEntry } from '../../types/periodTracker';
+import type { DayLogEntry } from '../../types/periodTracker';
 import { WellnessMetricCard } from './WellnessMetricCard';
 
 interface WellnessMetricsProps {
@@ -15,14 +15,14 @@ export const WellnessMetrics: React.FC<WellnessMetricsProps> = ({
   onQuickEditMetric,
 }) => {
   return (
-    <section className="w-full bg-white rounded-[19.2px] border border-[#F3F4F6] shadow-[0px_1.2px_2.4px_rgba(0,0,0,0.05)] p-4 sm:p-5">
+    <section className="w-full bg-white rounded-[19.2px] border border-[#F3F4F6] shadow-[0px_1.2px_2.4px_rgba(0,0,0,0.05)] p-3.5 sm:p-5 min-w-0">
       {/* Header Row matching Figma 234:1047 */}
-      <div className="flex items-center justify-between gap-4 pb-3.5 border-b border-gray-100/80">
-        <div>
-          <h3 className="text-[16.8px] font-bold text-[#1F2937] leading-[25.2px]">
+      <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-gray-100/80">
+        <div className="min-w-0">
+          <h3 className="text-[15px] sm:text-[16.8px] font-bold text-[#1F2937] leading-[25.2px] truncate">
             Wellness Metrics
           </h3>
-          <p className="text-[13.2px] text-[#9CA3AF] leading-[19.8px] mt-0.5">
+          <p className="text-[12px] sm:text-[13.2px] text-[#9CA3AF] leading-[19.8px] mt-0.5 truncate">
             {dayLog.displayDate.includes('Today')
               ? `Today, ${dayLog.shortDate.replace(' ', '/')} – Cycle Day ${dayLog.cycleDay}`
               : `${dayLog.shortDate} – Cycle Day ${dayLog.cycleDay}`}
@@ -31,18 +31,20 @@ export const WellnessMetrics: React.FC<WellnessMetricsProps> = ({
 
         {/* Edit Log Button with gradient text and pen icon */}
         <button
+          type="button"
           onClick={onEditLog}
-          className="px-3.5 py-1.5 rounded-[9.6px] border border-[#E9D5FF] bg-white hover:bg-pink-50/50 flex items-center gap-1.5 transition active:scale-95 shadow-sm group"
+          aria-label="Edit Wellness Metrics"
+          className="px-3 sm:px-3.5 py-1.5 rounded-[9.6px] border border-[#E9D5FF] bg-white hover:bg-pink-50/50 flex items-center gap-1.5 transition active:scale-95 shadow-sm group flex-shrink-0"
         >
           <PenLine size={14} className="text-[#F5489C] group-hover:rotate-12 transition-transform" />
-          <span className="text-[13.2px] font-medium bg-gradient-to-b from-[#F475C1] to-[#FF24AF] bg-clip-text text-transparent leading-[19.8px]">
+          <span className="text-[12.5px] sm:text-[13.2px] font-medium bg-gradient-to-b from-[#F475C1] to-[#FF24AF] bg-clip-text text-transparent leading-[19.8px]">
             Edit Log
           </span>
         </button>
       </div>
 
-      {/* Grid of 6 Cards matching Figma frames 2147227174 & 2147227175 */}
-      <div className="pt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+      {/* Grid of 6 Cards with fluid responsive breakpoints */}
+      <div className="pt-4 grid grid-cols-2 min-[540px]:grid-cols-3 min-[1024px]:grid-cols-6 gap-2.5 sm:gap-3 min-w-0">
         {/* Sleep */}
         <WellnessMetricCard
           label="Sleep"
@@ -98,8 +100,8 @@ export const WellnessMetrics: React.FC<WellnessMetricsProps> = ({
           label="Sex Activity"
           value={dayLog.sexActivity}
           icon={Heart}
-          iconBgColor="bg-[#FEF2F2]"
-          iconColor="text-[#EF4444]"
+          iconBgColor="bg-[#FFF1F2]"
+          iconColor="text-[#F43F5E]"
           onClick={() => onQuickEditMetric?.('sexActivity')}
         />
       </div>

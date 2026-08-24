@@ -65,6 +65,18 @@ export const EditLogModal: React.FC<EditLogModalProps> = ({
     }
   }, [isOpen, dayLog]);
 
+  // Lock body scroll while modal is active
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   // Handle ESC key press
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {

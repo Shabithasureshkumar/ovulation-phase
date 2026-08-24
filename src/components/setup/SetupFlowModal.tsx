@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Sparkles, Calendar, Clock, Shield, Target, CheckCircle2, ChevronRight, ChevronLeft, HeartHandshake, X } from 'lucide-react';
-import { SetupFormData } from '../../types/periodTracker';
+import type { SetupFormData } from '../../types/periodTracker';
 
 interface SetupFlowModalProps {
   isOpen: boolean;
@@ -29,6 +29,36 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<SetupFormData>(initialData);
 
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(initialData);
+      setCurrentStep(0);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, initialData]);
+
+  // Handle ESC key press
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, handleKeyDown]);
+
   if (!isOpen) return null;
 
   const handleNext = () => {
@@ -47,23 +77,36 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-in fade-in">
-      <div className="bg-white rounded-[32px] shadow-2xl border border-pink-100 w-full max-w-xl overflow-hidden flex flex-col min-h-[520px]">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-md animate-in fade-in"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="setup-flow-title"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-[28px] sm:rounded-[32px] shadow-2xl border border-pink-100 w-full max-w-xl overflow-hidden flex flex-col min-h-[480px] sm:min-h-[520px] max-h-[90vh]"
+      >
         {/* Header & Step progress */}
-        <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-pink-50/70 via-purple-50/50 to-white flex items-center justify-between">
+        <div className="px-5 sm:px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-pink-50/70 via-purple-50/50 to-white flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#EF4486] to-[#FF24AF] flex items-center justify-center text-white shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#EF4486] to-[#FF24AF] flex items-center justify-center text-white shadow-sm flex-shrink-0">
               <Sparkles size={16} />
             </div>
             <div>
               <span className="text-xs font-semibold uppercase tracking-wider text-pink-600">
                 Setup Wizard • Step {currentStep + 1} of {STEPS.length}
               </span>
-              <h3 className="text-sm font-bold text-gray-900">{STEPS[currentStep]}</h3>
+              <h3 id="setup-flow-title" className="text-sm font-bold text-gray-900">
+                {STEPS[currentStep]}
+              </h3>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close setup wizard"
             className="w-8 h-8 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 flex items-center justify-center transition"
           >
             <X size={18} />
@@ -79,14 +122,14 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
         </div>
 
         {/* Step Content */}
-        <div className="p-6 sm:p-8 flex-1 flex flex-col justify-center">
+        <div className="p-5 sm:p-8 flex-1 flex flex-col justify-center overflow-y-auto custom-scrollbar">
           {/* 1. Welcome */}
           {currentStep === 0 && (
             <div className="text-center space-y-4">
               <div className="w-16 h-16 rounded-3xl bg-pink-50 border border-pink-100 text-pink-500 mx-auto flex items-center justify-center shadow-inner">
                 <HeartHandshake size={32} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Welcome to Your Cycle Dashboard
               </h2>
               <p className="text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
@@ -99,11 +142,11 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
           {currentStep === 1 && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center flex-shrink-0">
                   <Calendar size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-lg">When did your last period start?</h3>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg">When did your last period start?</h3>
                   <p className="text-xs text-gray-500">Day 1 of your most recent menstrual cycle.</p>
                 </div>
               </div>
@@ -120,11 +163,11 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
           {currentStep === 2 && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-500 flex items-center justify-center flex-shrink-0">
                   <Clock size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-lg">How long is your average cycle?</h3>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg">How long is your average cycle?</h3>
                   <p className="text-xs text-gray-500">Typical range is 24 to 35 days (average 28 days).</p>
                 </div>
               </div>
@@ -148,11 +191,11 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
           {currentStep === 3 && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-pink-50 text-pink-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-pink-50 text-pink-500 flex items-center justify-center flex-shrink-0">
                   <Calendar size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-lg">How many days does your period last?</h3>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg">How many days does your period last?</h3>
                   <p className="text-xs text-gray-500">Usually ranges from 3 to 7 days.</p>
                 </div>
               </div>
@@ -176,15 +219,15 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
           {currentStep === 4 && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center flex-shrink-0">
                   <Shield size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-lg">Are you using birth control?</h3>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg">Are you using birth control?</h3>
                   <p className="text-xs text-gray-500">Helps calibrate temperature and biomarker patterns.</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {['None (Natural tracking)', 'Oral Contraceptives', 'Hormonal IUD', 'Copper IUD / Barrier'].map((bc) => (
                   <button
                     key={bc}
@@ -207,15 +250,15 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
           {currentStep === 5 && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center flex-shrink-0">
                   <Target size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-lg">What is your primary goal?</h3>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg">What is your primary goal?</h3>
                   <p className="text-xs text-gray-500">We will tailor your daily insights and predictions.</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {(['Track Cycle', 'Try to Conceive', 'Avoid Pregnancy', 'Monitor Health'] as SetupFormData['fertilityGoal'][]).map((goal) => (
                   <button
                     key={goal}
@@ -238,11 +281,11 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
           {currentStep === 6 && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center flex-shrink-0">
                   <CheckCircle2 size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-lg">Review Your Cycle Settings</h3>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg">Review Your Cycle Settings</h3>
                   <p className="text-xs text-gray-500">Everything looks great! Review before finalizing.</p>
                 </div>
               </div>
@@ -277,7 +320,7 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
               <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center shadow-lg">
                 <CheckCircle2 size={36} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Setup Complete!
               </h2>
               <p className="text-sm text-gray-600 max-w-sm mx-auto leading-relaxed">
@@ -288,7 +331,7 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
         </div>
 
         {/* Modal Navigation Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-5 sm:px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
           <button
             type="button"
             onClick={handleBack}
@@ -306,7 +349,7 @@ export const SetupFlowModal: React.FC<SetupFlowModalProps> = ({
           <button
             type="button"
             onClick={handleNext}
-            className="px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-[#EF4486] to-[#FF24AF] hover:from-[#D7068E] hover:to-[#EA33A1] text-white shadow-md active:scale-95 transition flex items-center gap-1.5"
+            className="px-5 sm:px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-[#EF4486] to-[#FF24AF] hover:from-[#D7068E] hover:to-[#EA33A1] text-white shadow-md active:scale-95 transition flex items-center gap-1.5"
           >
             <span>{currentStep === STEPS.length - 1 ? 'Go to Main Dashboard' : 'Continue'}</span>
             <ChevronRight size={16} />
